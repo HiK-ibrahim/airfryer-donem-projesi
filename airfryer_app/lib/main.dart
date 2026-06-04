@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 void main() {
   runApp(const AirfryerApp());
@@ -68,9 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Stream<dynamic>? _broadcastStream;
   bool _isConnected = false;
 
-  // Hedef 5: Veri Görselleştirme (Chart) & Bildirim Sistemi
-  final List<FlSpot> _tempHistory = [];
-  int _timeStep = 0;
+  // Hedef 5: Bildirim Sistemi
   bool _notifiedReady = false;
 
   void _showNotification(String title, String body) {
@@ -125,13 +122,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _timerActive = data['timerActive'] ?? false;
               _remainingSecs = data['remainingSecs'] ?? 0;
               _totalSecs = data['timerTotalSecs'] ?? 0;
-
-              // Veri Görselleştirme: Sıcaklık Zaman Eğrisi
-              if (_currentTemp > -50) {
-                _tempHistory.add(FlSpot(_timeStep.toDouble(), _currentTemp));
-                _timeStep++;
-                if (_tempHistory.length > 30) _tempHistory.removeAt(0);
-              }
             });
 
             // Bildirim Sistemi: Yemek Hazır ve Aşırı Isınma Uyarıları
@@ -249,8 +239,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildElegantControls(),
             const SizedBox(height: 32),
             _buildPresetsPanel(),
-            const SizedBox(height: 32),
-            _buildChartSection(),
             const SizedBox(height: 48), // Alt boşluk
           ],
         ),
@@ -528,6 +516,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildPresetButton(Icons.restaurant, "Tavuk", 190, 25),
             _buildPresetButton(Icons.local_pizza, "Pizza", 170, 10),
             _buildPresetButton(Icons.bakery_dining, "Kek", 160, 30),
+            _buildPresetButton(Icons.kebab_dining, "Kırmızı Et", 200, 12),
+            _buildPresetButton(Icons.eco, "Sebze", 180, 15),
+            _buildPresetButton(Icons.ac_unit, "Buz Çözme", 80, 10),
+            _buildPresetButton(Icons.breakfast_dining, "Ekmek", 160, 12),
+            _buildPresetButton(Icons.emoji_nature, "Kestane", 200, 20),
           ],
         ),
       ],
@@ -588,70 +581,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildChartSection() {
-    return Column(
-      children: [
-        const Text(
-          "- VERİ GÖRSELLEŞTİRME (SICAKLIK/ZAMAN) -",
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-            letterSpacing: 2,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          height: 200,
-          padding: const EdgeInsets.only(right: 20, left: 10, top: 20, bottom: 10),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade800),
-          ),
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: false,
-                getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade800, strokeWidth: 1),
-              ),
-              titlesData: FlTitlesData(
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    getTitlesWidget: (val, meta) => Text("${val.toInt()}°", style: const TextStyle(color: Colors.grey, fontSize: 10)),
-                  ),
-                ),
-              ),
-              borderData: FlBorderData(show: false),
-              minY: 0,
-              maxY: 250,
-              lineBarsData: [
-                LineChartBarData(
-                  spots: _tempHistory.isEmpty ? [const FlSpot(0, 0)] : _tempHistory,
-                  isCurved: true,
-                  color: Theme.of(context).colorScheme.secondary,
-                  barWidth: 3,
-                  isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
